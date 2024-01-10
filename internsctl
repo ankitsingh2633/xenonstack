@@ -1,0 +1,204 @@
+#!/bin/bash
+
+# internsctl - Custom Linux Command
+# Version: v0.1.0
+
+# -----------------------------------------------------------------------------
+# Function to display the manual page
+# -----------------------------------------------------------------------------
+display_manual() {
+    echo "internsctl(1)                   User Commands                  internsctl(1)"
+    echo ""
+    echo "NAME"
+    echo "       internsctl - Custom Linux Command"
+    echo ""
+    echo "SYNOPSIS"
+    echo "       internsctl [options] [arguments]"
+    echo ""
+    echo "DESCRIPTION"
+    echo "       This is a custom Linux command for various operations."
+    echo ""
+    echo "OPTIONS"
+    echo "       cpu           Get CPU information."
+    echo "       memory        Get memory information."
+    echo "       user          User management."
+    echo "       file          File information."
+    echo "       --help        Display help information."
+    echo "       --version     Display the command version."
+    echo ""
+    echo "EXAMPLES"
+    echo "       internsctl cpu"
+    echo "       internsctl memory"
+    echo "       internsctl user create <username>"
+    echo "       internsctl user list"
+    echo "       internsctl user list --sudo-only"
+    echo "       internsctl file getinfo <file-name>"
+    echo "       internsctl file getinfo --size <file-name>"
+    echo "       internsctl file getinfo --permissions <file-name>"
+    echo "       internsctl file getinfo --owner <file-name>"
+    echo "       internsctl file getinfo --last-modified <file-name>"
+    echo ""
+    echo "AUTHOR"
+    echo "       Your Name <your.email@example.com>"
+    echo ""
+    echo "SEE ALSO"
+    echo "       Other related commands."
+}
+
+# -----------------------------------------------------------------------------
+# Function to display help
+# -----------------------------------------------------------------------------
+display_help() {
+    echo "Usage: internsctl [command] [options] [arguments]"
+    echo "Commands:"
+    echo "  cpu             Get CPU information."
+    echo "  memory          Get memory information."
+    echo "  user            User management commands."
+    echo "  file            File information commands."
+    echo "  --help          Display this help message."
+    echo "  --version       Display the command version."
+    echo ""
+    echo "Use 'internsctl [command] --help' for more information about a specific command."
+}
+
+# -----------------------------------------------------------------------------
+# Function to display version
+# -----------------------------------------------------------------------------
+display_version() {
+    echo "internsctl v0.1.0"
+}
+
+# -----------------------------------------------------------------------------
+# Function to get CPU information
+# -----------------------------------------------------------------------------
+get_cpu_info() {
+    lscpu
+}
+
+# -----------------------------------------------------------------------------
+# Function to get memory information
+# -----------------------------------------------------------------------------
+get_memory_info() {
+    free
+}
+
+# -----------------------------------------------------------------------------
+# Function to create a new user
+# -----------------------------------------------------------------------------
+create_user() {
+    if [ "$#" -ne 2 ]; then
+        echo "Usage: internsctl user create <username>"
+        exit 1
+    fi
+
+    username="$2"
+    sudo useradd -m "$username"
+    echo "User '$username' created successfully."
+}
+
+# -----------------------------------------------------------------------------
+# Function to list users
+# -----------------------------------------------------------------------------
+list_users() {
+    if [ "$#" -eq 1 ]; then
+        getent passwd | cut -d: -f1
+    elif [ "$1" == "--sudo-only" ]; then
+        getent passwd | awk -F: '$3 == 0 {print $1}'
+    else
+        echo "Usage: internsctl user list [--sudo-only]"
+        exit 1
+    fi
+}
+
+# -----------------------------------------------------------------------------
+# Function to get file information
+# -----------------------------------------------------------------------------
+get_file_info() {
+    if [ "$#" -lt 2 ]; then
+        echo "Usage: internsctl file getinfo [options] <file-name>"
+        exit 1
+    fi
+
+    file_name="$2"
+
+    # Check for options
+    case "$3" in
+        --size | -s)
+            stat --format=%s "$file_name"
+            ;;
+        --permissions | -p)
+            stat --format=%A "$file_name"
+            ;;
+        --owner | -o)
+            stat --format=%U "$file_name"
+            ;;
+        --last-modified | -m)
+            stat --format=%y "$file_name"
+            ;;
+        *)
+            # Display full info by default
+            stat "$file_name"
+            ;;
+    esac
+}
+
+# -----------------------------------------------------------------------------
+# Main script logic
+# -----------------------------------------------------------------------------
+main() {
+    case "$1" in
+        cpu)
+            get_cpu_info
+            exit 0
+            ;;
+        memory)
+            get_memory_info
+            exit 0
+            ;;
+        user)
+            shift
+            case "$1" in
+                create)
+                    create_user "$@"
+                    exit 0
+                    ;;
+                list)
+                    shift
+                    list_users "$@"
+                    exit 0
+                    ;;
+                *)
+                    echo "Error: Unknown user command. Use --help for usage information."
+                    exit 1
+                    ;;
+            esac
+            ;;
+        file)
+            shift
+            get_file_info "$@"
+            exit 0
+            ;;
+        --help)
+            display_help
+            exit 0
+            ;;
+        --version)
+            display_version
+            exit 0
+            ;;
+         man)
+	    display_manual
+	    exit 0
+	    ;;
+        *)
+            echo "Error: Unknown command. Use --help for usage information."
+            exit 1
+            ;;
+    esac
+}
+
+# -----------------------------------------------------------------------------
+# Run the main function with command line arguments
+# -----------------------------------------------------------------------------
+main "$@"
+
