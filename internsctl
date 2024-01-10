@@ -36,7 +36,7 @@ display_manual() {
     echo "       internsctl file getinfo --last-modified <file-name>"
     echo ""
     echo "AUTHOR"
-    echo "       Your Name <your.email@example.com>"
+    echo "       Your Name <ankit2633.email@example.com>"
     echo ""
     echo "SEE ALSO"
     echo "       Other related commands."
